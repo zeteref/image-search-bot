@@ -13,6 +13,7 @@ import time
 import urllib
 import urllib2
 import webapp2
+import multipart
 
 from google.appengine.api import urlfetch
 from google.appengine.ext import ndb
@@ -77,8 +78,11 @@ class WebhookHandler(webapp2.RequestHandler):
         except:
             logging.exception('Exception was thrown')
 
-    def get_command(self, params):
-        self.msg(self.fetch_image_url(params))
+    def img_command(self, params):
+        self.msg(self.fetch_image_url(params, safe=False))
+
+    def safeimg_command(self, params):
+        self.msg(self.fetch_image_url(params, safe=False))
 
     def fetch_image_url(self, searchTerm, safe=True):
         searchTerm = urllib.quote_plus(searchTerm)
