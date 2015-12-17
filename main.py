@@ -17,6 +17,7 @@ import webapp2
 from google.appengine.api import urlfetch
 from google.appengine.ext import ndb
 
+from PIL import Image
 from pyquery import PyQuery as pq
 
 f = open('secret.json')
@@ -26,6 +27,8 @@ f.close()
 TOKEN = s['TOKEN']
 
 BASE_URL = 'https://api.telegram.org/bot' + TOKEN + '/'
+
+bot = telegram.Bot(token=TOKEN)
 
 class MeHandler(webapp2.RequestHandler):
     def get(self):
