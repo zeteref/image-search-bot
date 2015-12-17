@@ -1,13 +1,31 @@
-import os
-import sys
-import time
-import urllib2
-import urllib
-import simplejson
+import base64
 import cStringIO
+import json
+import logging
+import os
 import random
+import re
+import simplejson
+import StringIO
+import sys
+import telegram
+import time
+import urllib
+import urllib2
+import webapp2
+
+from google.appengine.api import urlfetch
+from google.appengine.ext import ndb
 
 from pyquery import PyQuery as pq
+
+f = open('secret.json')
+s = json.loads(f.read())
+f.close()
+
+TOKEN = s['TOKEN']
+
+BASE_URL = 'https://api.telegram.org/bot' + TOKEN + '/'
 
 class MeHandler(webapp2.RequestHandler):
     def get(self):
