@@ -48,10 +48,44 @@ class SetWebhookHandler(webapp2.RequestHandler):
 
 class WebhookHandler(webapp2.RequestHandler):
     def post(self):
-        print fetch_image('kitty')
+        try:
+            urlfetch.set_default_fetch_deadline(60)
+            body = json.loads(self.request.body)
+            logging.info('request body:')
+            logging.info(body)
+            self.response.write(json.dumps(body))
 
+            update_id = body['update_id']
+            message = body['message']
+            self.message_id = message.get('message_id')
+            date = message.get('date')
+            text = message.get('text')
+            fr = message.get('from')
+            chat = message['chat']
+            self.chat_id = chat['id']
 
-    def fetch_image(searchTerm, safe=True):
+            self.msg(fetch_image_url('kitty'))
+
+            command, params = parse_command(text)
+
+            if not command: return
+            if not hasattr(self, command): return
+
+            func = getattr(self, command)
+            func(params)
+        except:
+            logging.exception('Exception was thrown')
+
+    def parse_command(text):
+        if not text.startswith('/'): return
+
+        tmp = text[1:].split()
+        return tmp[0] + "_command", ' '.join(tmp[1:])
+
+    def get_command(self, params):
+        self.msg(fetch_image_url(params))
+
+    def fetch_image_url(searchTerm, safe=True):
         searchTerm = urllib.quote_plus(searchTerm)
 
         url = ('http://www.bing.com/images/search?q=%s' % searchTerm)
@@ -65,6 +99,26 @@ class WebhookHandler(webapp2.RequestHandler):
         page = pq(xhtml).xhtml_to_html()
 
         return random.choice([x.attrib['href'] for x in page('.thumb')])
+
+    def msg(self, msg=None, img=None, preview='true', reply=False):
+        if self.message_id == "-1": # for testing
+            self.response.write("\n")
+            self.response.write('-----------------------------\n')
+            self.response.write(msg)
+            self.response.write('\n-----------------------------')
+        elif msg:
+            params = {
+                'chat_id': str(self.chat_id),
+                'text': msg.encode('utf-8'),
+                'enable_web_page_preview': preview,
+            }
+            if reply:
+                params['reply_to_message_id'] = str(self.message_id)
+
+            bot.sendMessage(chat_id=self.chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN, disable_web_page_preview=False)
+
+
+
 
 app = webapp2.WSGIApplication([
     ('/me', MeHandler),
