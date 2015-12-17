@@ -110,8 +110,19 @@ class WebhookHandler(webapp2.RequestHandler):
             if reply:
                 params['reply_to_message_id'] = str(self.message_id)
 
-            bot.sendMessage(chat_id=self.chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN, disable_web_page_preview=False)
+            bot.sendChatAction(chat_id=self.chat_id, action=telegram.ChatAction.UPLOAD_PHOTO)
+            img = cStringIO.StringIO(urllib.urlopen(msg).read()).getvalue()
+            self.sendImage(img)
+            #bot.sendPhoto(chat_id=self.chat_id, reply_to_message_id=self.message_id, photo=msg)
+            #bot.sendMessage(chat_id=self.chat_id, reply_to_message_id=self.message_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN, disable_web_page_preview=False)
 
+    def sendImage(self, img):
+        resp = multipart.post_multipart(BASE_URL + 'sendPhoto', [
+            ('chat_id', str(self.chat_id)),
+            ('reply_to_message_id', str(self.message_id)),
+        ], [
+            ('photo', 'image.jpg', img),
+        ])
 
 
 def parse_command(text):
