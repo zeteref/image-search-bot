@@ -64,8 +64,6 @@ class WebhookHandler(webapp2.RequestHandler):
             chat = message['chat']
             self.chat_id = chat['id']
 
-            self.msg(fetch_image_url('kitty'))
-
             command, params = parse_command(text)
 
             if not command: return
@@ -76,16 +74,10 @@ class WebhookHandler(webapp2.RequestHandler):
         except:
             logging.exception('Exception was thrown')
 
-    def parse_command(text):
-        if not text.startswith('/'): return
-
-        tmp = text[1:].split()
-        return tmp[0] + "_command", ' '.join(tmp[1:])
-
     def get_command(self, params):
-        self.msg(fetch_image_url(params))
+        self.msg(self.fetch_image_url(params))
 
-    def fetch_image_url(searchTerm, safe=True):
+    def fetch_image_url(self, searchTerm, safe=True):
         searchTerm = urllib.quote_plus(searchTerm)
 
         url = ('http://www.bing.com/images/search?q=%s' % searchTerm)
@@ -119,6 +111,11 @@ class WebhookHandler(webapp2.RequestHandler):
 
 
 
+def parse_command(text):
+    if not text.startswith('/'): return
+
+    tmp = text[1:].split()
+    return tmp[0] + "_command", ' '.join(tmp[1:])
 
 app = webapp2.WSGIApplication([
     ('/me', MeHandler),
