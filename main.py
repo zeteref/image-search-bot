@@ -1,3 +1,4 @@
+# *- encoding: utf8 -*
 import base64
 import cStringIO
 import json
@@ -75,29 +76,50 @@ class WebhookHandler(webapp2.RequestHandler):
 
             func = getattr(self, command)
             func(params)
-        except:
+        except Exception as e:
+            self.msg('Error! Error! Error! HALP!')
             logging.exception('Exception was thrown')
 
     def img_command(self, params):
-        self.msg(self.fetch_image_url(params, safe=False))
+        self.post_image(params, False)
 
     def safeimg_command(self, params):
-        self.msg(self.fetch_image_url(params, safe=False))
+        self.post_image(params, True)
+
+    def post_image(self, params, safe):
+        url = self.fetch_image_url(params, safe=safe)
+        if url:
+            self.msg(url)
+        else:
+            if self.message_id != -1:
+                bot.sendMessage(chat_id=self.chat_id, text="Nic nie mogę znależć /o\\", parse_mode=telegram.ParseMode.MARKDOWN, enable_web_page_preview=True)
+
 
     def fetch_image_url(self, searchTerm, safe=True):
-        searchTerm = urllib.quote_plus(searchTerm)
+        searchTerm = urllib.quote_plus(searchTerm.encode('utf8'))
 
         url = ('http://www.bing.com/images/search?q=%s' % searchTerm)
 
         opener = urllib2.build_opener()
         if not safe:
             opener.addheaders.append(('Cookie', 'SRCHHPGUSR=CW=1587&CH=371&DPR=1&ADLT=OFF'))
+            opener.addheaders.append(('User-agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5'))
 
         page = opener.open(url)
         xhtml = page.read()
         page = pq(xhtml).xhtml_to_html()
 
-        return random.choice([x.attrib['href'] for x in page('.thumb')])
+        links = [x.attrib['href'] for x in page('.thumb')]
+        if not links:
+            return None
+
+        for i in range(5):
+            link = random.choice(links)
+            if not test_url(link):
+                links.remove(link)
+            else:
+                return link
+
 
     def msg(self, msg=None, img=None, preview='true', reply=False):
         if self.message_id == "-1": # for testing
@@ -126,6 +148,17 @@ class WebhookHandler(webapp2.RequestHandler):
             ('photo', 'image.jpg', img),
         ])
 
+
+def test_url(url):
+    try:
+        urllib2.urlopen(url, timeout=1)
+        return True
+    except urllib2.HTTPError, e:
+        logging.exception('Bad URL %s' % url)
+        return False
+    except urllib2.URLError, e:
+        logging.exception('Bad URL %s' % url)
+        return False
 
 def parse_command(text):
     if not text.startswith('/'): return
