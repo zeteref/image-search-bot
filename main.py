@@ -89,12 +89,12 @@ class WebhookHandler(webapp2.RequestHandler):
     def post_image(self, params, safe):
         url = self.fetch_image_url(params, safe=safe)
         if url:
-            self.msg(url)
+            self.send_image_msg(url)
         else:
             if self.message_id != -1:
-                bot.sendMessage(chat_id=self.chat_id, text="Nic nie mogę znależć /o\\", parse_mode=telegram.ParseMode.MARKDOWN, enable_web_page_preview=True)
+                self.msg("Nic nie mogę znaleźć /o\\ !!111!one!")
 
-
+                
     def fetch_image_url(self, searchTerm, safe=True):
         searchTerm = urllib.quote_plus(searchTerm.encode('utf8'))
 
@@ -120,13 +120,19 @@ class WebhookHandler(webapp2.RequestHandler):
             else:
                 return link
 
-
-    def msg(self, msg=None, img=None, preview='true', reply=False):
-        if self.message_id == "-1": # for testing
+    def msg(self, text):
+        if self.message_id == "-1":
             self.response.write("\n")
             self.response.write('-----------------------------\n')
-            self.response.write(msg)
+            self.response.write(text)
             self.response.write('\n-----------------------------')
+        else:
+            bot.sendMessage(chat_id=self.chat_id, text=text, parse_mode=telegram.ParseMode.MARKDOWN, enable_web_page_preview=True)
+
+
+    def send_image_msg(self, msg=None, img=None, preview='true', reply=False):
+        if self.message_id == "-1": # for testing
+            self.msg(msg)
         elif msg:
             params = {
                 'chat_id': str(self.chat_id),
@@ -137,9 +143,9 @@ class WebhookHandler(webapp2.RequestHandler):
                 params['reply_to_message_id'] = str(self.message_id)
 
             bot.sendChatAction(chat_id=self.chat_id, action=telegram.ChatAction.UPLOAD_PHOTO)
-            self.sendImage(msg)
+            self.send_image(msg)
 
-    def sendImage(self, url):
+    def send_image(self, url):
         img = cStringIO.StringIO(urllib.urlopen(url).read()).getvalue()
         resp = multipart.post_multipart(BASE_URL + 'sendPhoto', [
             ('chat_id', str(self.chat_id)),
