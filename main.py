@@ -168,6 +168,9 @@ def test_url(url):
     except urllib2.URLError, e:
         logging.exception('Bad URL %s' % url)
         return False
+    except:
+        logging.exception('Bad URL %s' % url)
+        return False
 
 def parse_command(text):
     if not text.startswith('/'): return
