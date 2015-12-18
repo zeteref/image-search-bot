@@ -27,10 +27,10 @@ s = json.loads(f.read())
 f.close()
 
 TOKEN = s['TOKEN']
-
 BASE_URL = 'https://api.telegram.org/bot' + TOKEN + '/'
 
 bot = telegram.Bot(token=TOKEN)
+
 
 class MeHandler(webapp2.RequestHandler):
     def get(self):
@@ -92,7 +92,10 @@ class WebhookHandler(webapp2.RequestHandler):
             self.send_image_msg(url)
         else:
             if self.message_id != -1:
-                self.msg("Nic nie mogę znaleźć /o\\ !!111!one!")
+                if not url:
+                    self.msg("Nic nie mogę znaleźć /o\\ !!111!one!")
+                else:
+                    self.msg(url)
 
                 
     def fetch_image_url(self, searchTerm, safe=True):
