@@ -82,6 +82,14 @@ class WebhookHandler(webapp2.RequestHandler):
             self.msg('Error! Error! Error! HALP!')
             logging.exception('Exception was thrown')
 
+    def movie_command(self, params):
+        try:
+            for url in get_movie_ulrs(params)[:3]:
+                self.msg('http://www.imdb.com%s' % url)
+        except:
+            self.msg('Unable to find movie for %s' % params)
+            logging.exception('Exception was thrown')
+
     def img_command(self, params):
         self.post_image(params, False)
 
@@ -159,6 +167,10 @@ class WebhookHandler(webapp2.RequestHandler):
             ('photo', 'image.jpg', img),
         ])
 
+def get_movie_ulrs(name):
+    url = 'http://www.imdb.com/find?q=%s&s=tt&ref_=fn_tt_pop' % urllib.quote_plus(name)
+    page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
+    return [x.get('href') for x in page('td[class="result_text"] a')]
 
 def test_url(url):
     try:
