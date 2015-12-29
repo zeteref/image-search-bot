@@ -69,6 +69,8 @@ class WebhookHandler(webapp2.RequestHandler):
             chat = message['chat']
             self.chat_id = chat['id']
 
+            if not text.startswith('/'): return
+
             command, params = parse_command(text)
 
             if not command: return
