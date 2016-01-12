@@ -93,7 +93,7 @@ class WebhookHandler(webapp2.RequestHandler):
     def img_command(self, params):
         self.post_image(params, False)
 
-    def safeimg_command(self, params):
+    def safe_command(self, params):
         self.post_image(params, True)
 
     def post_image(self, params, safe):
